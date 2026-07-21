@@ -20,6 +20,7 @@ checkpoint:
   save_freq: 5
   monitor_metric: "val_loss"
   mode: "min"
+  patience: 5
 
 logging:
   tensorboard: true
