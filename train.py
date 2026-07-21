@@ -60,7 +60,7 @@ def main():
     aug_cfg_path = os.path.join(project_root, args.augmentation_config)
 
     # Set up experiment directory
-    experiment_dir = os.path.join(project_root, "experiments", args.experiment_name)
+    experiment_dir = os.path.join(project_root, "outputs", args.experiment_name)
     os.makedirs(experiment_dir, exist_ok=True)
 
     # Save copy of configurations in the experiment folder for exact reproducibility

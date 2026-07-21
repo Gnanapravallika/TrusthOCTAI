@@ -1,0 +1,12 @@
+# EXP001: Baseline ResNet50 Classifier (No attention, fusion, or style mixing)
+name: "EXP001_Baseline"
+backbone: "resnet50"
+pretrained: true
+
+feature_module: "identity"
+attention: "none"
+domain_generalization: "identity"
+
+head: "softmax"
+num_classes: 4
+dropout: 0.5

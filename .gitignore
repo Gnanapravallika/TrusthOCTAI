@@ -1,13 +1,11 @@
-# Byte-compiled / optimized / DLL files
+# Python
 __pycache__/
+.venv/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
-
-# Distribution / packaging
 .Python
+env/
 build/
 develop-eggs/
 dist/
@@ -24,25 +22,26 @@ share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
-# PyCharm / VS Code / Jupyter
-.idea/
+# PyTorch/TensorBoard
+lightning_logs/
+runs/
+*.pt
+*.pth
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# VS Code / IDEs
 .vscode/
-*.ipynb_checkpoints
+.idea/
 
-# Environment
-.env
-.venv
-venv/
-ENV/
-env/
-
-# Datasets and outputs
-datasets/raw/
-datasets/processed/
+# TrustOCT Datasets & Outputs
+datasets/
 outputs/
-weights/
-logs/
-experiments/*/weights.pth
-experiments/*/metrics.json
-experiments/*/plots/
+experiments/
+*.zip
+*.json
+*.png
+kaggle.json

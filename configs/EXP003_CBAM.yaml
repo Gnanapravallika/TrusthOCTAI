@@ -1,0 +1,12 @@
+# EXP003: ResNet50 + CBAM Attention Gate
+name: "EXP003_CBAM"
+backbone: "resnet50"
+pretrained: true
+
+feature_module: "identity"
+attention: "cbam"
+domain_generalization: "identity"
+
+head: "softmax"
+num_classes: 4
+dropout: 0.5

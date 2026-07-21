@@ -1,0 +1,15 @@
+# EXP006: TrustOCT Proposed Method (Full Framework)
+name: "EXP006_TrustOCT"
+backbone: "resnet50"
+pretrained: true
+
+feature_module: "multiscale"
+attention: "cbam"
+domain_generalization: "mixstyle"
+mixstyle:
+  mix_prob: 0.5
+  alpha: 0.1
+
+head: "edl"
+num_classes: 4
+dropout: 0.5
