@@ -1,66 +1,162 @@
-# TrustOCT: Project Specification
+# TrustOCT
 
-## 1. Introduction
-Optical Coherence Tomography (OCT) is a standard non-invasive imaging modality in ophthalmology used to detect macular diseases such as Choroidal Neovascularization (CNV), Diabetic Macular Edema (DME), and Drusen. While deep learning models have achieved expert-level performance on specific datasets, deploying them safely in clinical environments remains a challenge due to dataset shift and overconfident misclassifications.
+**Version:** 1.0
 
-**TrustOCT** is a deep learning framework designed for trustworthy, cross-device retinal OCT classification. It integrates domain generalization to handle cross-scanner variability and uncertainty-aware selective prediction to identify and defer unreliable/low-quality scans.
+**Project Type:** M.Tech Research Project
 
----
+**Research Area:** Medical Image Analysis | Deep Learning | Explainable AI | Trustworthy AI
 
-## 2. Research Gaps
-1. **Cross-Device Performance Drops**: Models trained on single-scanner datasets show significant performance drops when evaluated on images from different manufacturers (e.g., Heidelberg Spectralis vs. Zeiss Cirrus) due to variance in contrast, resolution, and noise.
-2. **Uncalibrated Confidence**: Standard neural networks output overconfident softmax probabilities even when presented with corrupted, ambiguous, or out-of-distribution (OOD) images, which poses severe clinical risks.
-3. **Black-box Explainability**: Common visual attribution methods (like Grad-CAM) often produce coarse, unlocalized heatmaps that do not correspond well to fine clinical lesions like micro-drusen or thin fluid layers.
+**Framework Name:** TrustOCT
 
 ---
 
-## 3. Research Objectives
-- **Objective 1**: Develop a robust feature extraction pipeline that generalizes across different scanner manufacturers without requiring target domain data during training.
-- **Objective 2**: Quantify prediction uncertainty using Evidential Deep Learning (EDL) to distinguish between reliable and unreliable predictions.
-- **Objective 3**: Implement a selective prediction mechanism that defers low-confidence, high-uncertainty predictions for manual ophthalmologist review.
-- **Objective 4**: Benchmark LayerCAM against Grad-CAM and Grad-CAM++ to determine which visual explanation method provides the most precise clinical lesion localization.
+# 1. Project Overview
+
+TrustOCT is a trustworthy deep learning framework for retinal Optical Coherence Tomography (OCT) disease classification. The framework is designed to improve the reliability of automated diagnosis under cross-device and cross-dataset conditions by integrating domain generalization, uncertainty estimation, explainable AI, and modular deep learning components.
+
+Unlike conventional OCT classifiers that primarily optimize classification accuracy on a single dataset, TrustOCT focuses on producing reliable predictions that generalize across different imaging domains while providing calibrated confidence estimates and interpretable visual explanations.
 
 ---
 
-## 4. Research Questions
-- **RQ1**: Can feature-level domain generalization (MixStyle / Feature CORAL) improve classification performance on unseen external OCT datasets?
-- **RQ2**: Can evidential uncertainty estimation reliably identify incorrect predictions and out-of-distribution images?
-- **RQ3**: Does selective prediction (abstention under high uncertainty) improve the safety and accuracy of the retained predictions?
-- **RQ4**: Does LayerCAM provide superior lesion localization (higher visual alignment with retinal pathology) compared to traditional Grad-CAM on OCT scans?
+# 2. Problem Statement
+
+Deep learning models have demonstrated excellent performance for retinal OCT disease classification. However, most existing models suffer from several limitations:
+
+- Performance decreases significantly on external datasets.
+- Different OCT scanners produce domain shifts.
+- Models are often overconfident on unfamiliar images.
+- Most methods focus only on improving accuracy.
+- Explainability methods are rarely evaluated together with model confidence.
+
+These limitations reduce the clinical applicability of current OCT classification systems.
 
 ---
 
-## 5. Proposed Methodology
-The TrustOCT framework is built with a LEGO-like modular design comprising:
-- **Preprocessing Pipeline**: Bilateral filtering to reduce speckle noise while preserving retinal layers, followed by CLAHE to enhance contrast.
-- **Backbone**: Swappable feature extraction backbone (ResNet50 / ConvNeXt-Tiny).
-- **Domain Generalization**: Swappable modules (MixStyle, CORAL, or Identity/None) to learn scanner-invariant representations.
-- **Multi-Scale Feature Fusion**: Combines spatial detail from intermediate layers (Layer 3) with global context (Layer 4).
-- **Attention Block**: Convolutional Block Attention Module (CBAM) to focus on lesion-relevant spatial and channel features.
-- **Evidential Classification Head**: A specialized head producing Dirichlet parameters to quantify prediction evidence and uncertainty.
+# 3. Research Gap
+
+Recent literature identifies several unresolved challenges:
+
+- Cross-device robustness
+- Cross-dataset generalization
+- Trustworthy confidence estimation
+- Reliable uncertainty-aware prediction
+- Clinically meaningful explainability
+- External validation on multiple public datasets
+
+Most existing studies address these problems individually rather than within a unified framework.
 
 ---
 
-## 6. Datasets
-- **Source/Training Domain**: Kermany OCT2017 (~84,000 images; Normal, CNV, DME, Drusen).
-- **Target/External Testing Domain 1**: OCTDL (Optical Coherence Tomography Dataset for Deep Learning).
-- **Target/External Testing Domain 2**: NEH-UT dataset.
-- **Target/External Testing Domain 3 (Optional)**: OCTID (OCT Image Database).
+# 4. Research Objectives
+
+The primary objective of this research is to develop TrustOCT, a modular deep learning framework capable of reliable retinal OCT disease classification across different datasets.
+
+Specific objectives include:
+
+1. Develop a robust OCT disease classification framework.
+
+2. Improve cross-dataset generalization.
+
+3. Estimate predictive uncertainty.
+
+4. Support selective prediction for uncertain samples.
+
+5. Generate clinically interpretable visual explanations.
+
+6. Compare multiple domain generalization techniques.
 
 ---
 
-## 7. Baselines
-We evaluate TrustOCT against the following baseline configurations:
-1. **Baseline 1 (Standard Transfer Learning)**: ResNet50 trained with standard cross-entropy loss, without attention, domain generalization, or evidential heads.
-2. **Baseline 2 (Attention-augmented)**: ResNet50 + CBAM.
-3. **Baseline 3 (Domain-generalized)**: ResNet50 + MixStyle.
-4. **Baseline 4 (Evidential-only)**: ResNet50 + Evidential Head.
-5. **Proposed (TrustOCT)**: ResNet50 + Multi-Scale Fusion + CBAM + MixStyle + Evidential Head.
+# 5. Research Questions
+
+RQ1: Can domain generalization improve retinal OCT classification performance on unseen datasets?
+
+RQ2: Can uncertainty estimation improve prediction reliability?
+
+RQ3: Can selective prediction reduce diagnostic risk?
+
+RQ4: Which explainability technique provides more meaningful lesion localization?
 
 ---
 
-## 8. Expected Contributions
-1. A unified, modular framework (**TrustOCT**) combining domain generalization and evidential deep learning for retinal OCT classification.
-2. Direct empirical comparisons between feature-level generalization techniques (MixStyle vs. CORAL) for cross-scanner medical image translation.
-3. Rigorous validation of selective prediction using accuracy-coverage curves, demonstrating safety improvements in clinical diagnostic pipelines.
-4. Comparative visualization studies highlighting LayerCAM's fine-grained lesion localization over Grad-CAM algorithms.
+# 6. Scope
+
+Included
+
+- Retinal OCT image classification
+- Public datasets
+- Cross-dataset evaluation
+- Explainable AI
+- Domain Generalization
+- Evidential Deep Learning
+- Calibration analysis
+
+Excluded
+
+- Clinical trials
+- Hospital deployment
+- Segmentation
+- Multimodal imaging
+- Federated learning
+
+---
+
+# 7. Proposed Framework
+
+TrustOCT consists of:
+
+- Image preprocessing
+- CNN backbone
+- Multi-scale feature extraction
+- Attention module
+- Domain Generalization
+- Classification Head
+- Evidential Uncertainty Head
+- Explainability Module
+
+Each component is independently replaceable to support reproducible research and ablation studies.
+
+---
+
+# 8. Expected Contributions
+
+This research is expected to contribute:
+
+1. A modular TrustOCT framework.
+
+2. Cross-device evaluation strategy.
+
+3. Domain generalization comparison.
+
+4. Reliable uncertainty estimation.
+
+5. Comprehensive explainability analysis.
+
+6. Extensive ablation studies.
+
+---
+
+# 9. Expected Deliverables
+
+- Research Paper
+- M.Tech Dissertation
+- GitHub Repository
+- Reproducible Code
+- Experimental Results
+- Trained Models
+- Architecture Figures
+- Paper Tables
+- Documentation
+
+---
+
+# 10. Success Criteria
+
+The project will be considered successful if it:
+
+- Achieves competitive classification performance.
+- Demonstrates improved external robustness.
+- Produces calibrated uncertainty estimates.
+- Supports interpretable decision making.
+- Is completely reproducible.
+- Is suitable for publication.
