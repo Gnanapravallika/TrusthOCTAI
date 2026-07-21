@@ -280,18 +280,18 @@ def verify_dataset(config_path: str, report_output_path: str) -> bool:
         json.dump(report, f, indent=4)
 
     if report["verification_status"] == "FAILED":
-        print(f"❌ Verification FAILED. Missing directories: {report['missing_directories']}")
+        print(f"[ERROR] Verification FAILED. Missing directories: {report['missing_directories']}")
         return False
 
     for split_name, split_info in report["splits"].items():
         if split_info.get("corrupt_images"):
-            print(f"❌ Found corrupt images in {split_name} split!")
+            print(f"[ERROR] Found corrupt images in {split_name} split!")
             return False
 
-    print("✓ Folder structure verified")
-    print("✓ Classes verified")
-    print("✓ Images verified")
-    print("✓ No corrupted images")
+    print("[OK] Folder structure verified")
+    print("[OK] Classes verified")
+    print("[OK] Images verified")
+    print("[OK] No corrupted images")
     print(f"Report saved to: {report_output_path}")
     print("=" * 40)
     return True
@@ -401,8 +401,8 @@ def generate_statistics_report(config_path: str, output_path: str, max_samples: 
         json.dump(stats_report, f, indent=4)
 
     print(f"Statistics saved to: {output_path}")
-    print(f"✓ RGB Mean: {[round(m, 4) for m in mean]}")
-    print(f"✓ RGB Std:  {[round(s, 4) for s in std]}")
+    print(f"[OK] RGB Mean: {[round(m, 4) for m in mean]}")
+    print(f"[OK] RGB Std:  {[round(s, 4) for s in std]}")
     print("=" * 40)
     return True
 
