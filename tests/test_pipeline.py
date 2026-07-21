@@ -1,4 +1,4 @@
-"""Unit and pipeline integration tests for TrustOCT dataset loader."""
+"""Unit and pipeline integration tests for TrustOCT dataset loader and model blocks."""
 
 import os
 import tempfile
@@ -13,6 +13,8 @@ from src.datasets.kermany import KermanyDataset
 from src.datasets.loader import create_dataloader
 from src.datasets.verify import generate_dataset_report, verify_dataset
 from src.preprocessing.transforms import get_train_transforms, get_val_transforms
+from src.models.trustoct import TrustOCT
+from src.losses.losses import EdlLoss
 
 
 @pytest.fixture
@@ -120,3 +122,57 @@ def test_dataloader_creation(mock_dataset_dir):
         assert images.shape[1] == 3
         assert labels.shape[0] == 2
         break
+
+
+def test_trustoct_model_variants():
+    """Verify model forward pass outputs and shapes under multiple configurations."""
+    # Test batch size of 2, 3 color channels, 224x224 input
+    mock_input = torch.randn(2, 3, 224, 224)
+
+    # 1. Test Evidential (EDL) variant with Multi-scale + CBAM + MixStyle
+    model_edl = TrustOCT(
+        backbone_name="resnet50",
+        pretrained=False,
+        use_multiscale=True,
+        use_cbam=True,
+        dg_type="mixstyle",
+        head_type="edl",
+        num_classes=4
+    )
+    model_edl.train()
+    evidence, alpha = model_edl(mock_input)
+    assert evidence.shape == (2, 4)
+    assert alpha.shape == (2, 4)
+    assert torch.all(evidence >= 0.0)
+    assert torch.all(alpha >= 1.0)
+
+    # 2. Test Softmax variant without Multi-scale (Standard ResNet50 baseline)
+    model_softmax = TrustOCT(
+        backbone_name="resnet50",
+        pretrained=False,
+        use_multiscale=False,
+        use_cbam=False,
+        dg_type="identity",
+        head_type="softmax",
+        num_classes=4
+    )
+    model_softmax.eval()
+    with torch.no_grad():
+        logits = model_softmax(mock_input)
+    assert logits.shape == (2, 4)
+
+
+def test_edl_loss():
+    """Test Evidential loss calculation and gradients."""
+    alpha = torch.tensor([[2.0, 1.0, 1.0, 1.0], [1.0, 3.0, 1.0, 1.0]], requires_grad=True)
+    target = torch.tensor([0, 1])
+
+    criterion = EdlLoss(num_classes=4, annealing_epochs=10)
+    loss = criterion(alpha, target, epoch=0)
+
+    assert isinstance(loss, torch.Tensor)
+    assert loss.dim() == 0  # scalar
+    
+    # Verify gradient backprop works
+    loss.backward()
+    assert alpha.grad is not None
