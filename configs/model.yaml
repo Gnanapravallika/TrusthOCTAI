@@ -1,0 +1,20 @@
+# Model Architecture configuration for TrustOCT
+
+name: "TrustOCT"
+backbone: "resnet50"          # Options: resnet50, convnext_tiny
+pretrained: true
+
+feature_module: "multiscale"  # Options: multiscale, identity
+attention: "cbam"             # Options: cbam, none
+
+domain_generalization: "mixstyle"  # Options: mixstyle, coral, identity
+mixstyle:
+  layer_names: ["layer1", "layer2"]
+  mix_prob: 0.5
+  alpha: 0.1
+coral:
+  weight: 0.5
+
+head: "edl"                   # Options: edl, softmax
+num_classes: 4                # Normal, CNV, DME, Drusen
+dropout: 0.5

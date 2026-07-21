@@ -1,0 +1,1 @@
+"""Standard softmax classification head."""

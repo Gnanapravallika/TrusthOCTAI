@@ -1,0 +1,23 @@
+# Dataset configurations for TrustOCT
+
+train_dataset: "kermany"
+train_path: "datasets/raw/kermany"
+
+validation_split: 0.2
+seed: 42
+
+external_datasets:
+  octdl:
+    path: "datasets/raw/octdl"
+    enabled: true
+  nehut:
+    path: "datasets/raw/nehut"
+    enabled: true
+  octid:
+    path: "datasets/raw/octid"
+    enabled: false
+
+dataloader:
+  batch_size: 32
+  num_workers: 4
+  pin_memory: true
