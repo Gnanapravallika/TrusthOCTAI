@@ -11,7 +11,10 @@
 | **T006** | DataLoader & Factory (`loader.py` / `factory.py`) | ✅ Completed |
 | **T007** | Custom transforms (`transforms.py`) | ✅ Completed |
 | **T008** | Unit Tests (`tests/test_pipeline.py`) | ✅ Completed |
-| **T009** | Baseline ResNet50 Classifier | ⏳ Pending |
+| **T009** | Model Architectures (`backbone.py` / `cbam.py` / `multiscale.py` / `mixstyle.py` / `trustoct.py`) | ✅ Completed |
+| **T010** | Loss Functions & Trainer Engine (`losses.py` / `trainer.py`) | ✅ Completed |
+| **T011** | Model Registry Builder (`builder.py`) | ✅ Completed |
+| **T012** | Baseline Training & Ablations (Colab GPU) | ⏳ Pending |
 
 ---
 
@@ -28,10 +31,10 @@
 - [x] Create master Google Colab setup notebook ([TrustOCT_Setup.ipynb](file:///e:/Trustworthy-OCT-AI/notebooks/TrustOCT_Setup.ipynb))
 
 ## Phase 3: Model Training & Baselines (Active ⏳)
-- [ ] Implement backbone modules and head classes in `src/models/`
-- [ ] Implement builder registry in `src/registry/`
-- [ ] Write evidential loss function in `src/losses/`
-- [ ] Write training and trainer loop in `src/train/`
+- [x] Implement backbone modules and head classes in `src/models/`
+- [x] Implement builder registry in `src/registry/`
+- [x] Write evidential loss function in `src/losses/`
+- [x] Write training and trainer loop in `src/train/`
 - [ ] Execute Baseline training (EXP001)
 - [ ] Execute Ablation studies (EXP002 - EXP006)
 - [ ] Execute Proposed TrustOCT training (EXP007)
@@ -41,4 +44,5 @@
 - [ ] Produce plots and reliability diagrams in `paper/figures/`
 - [ ] Format classification tables in `paper/tables/`
 - [ ] Compile explainability outputs (LayerCAM vs Grad-CAM)
+
 
