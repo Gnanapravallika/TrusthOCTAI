@@ -152,7 +152,7 @@ def run_smoke_test():
         # 5. Check if checkpoints are saved correctly
         checkpoint_path = os.path.join(experiment_dir, "weights_best.pth")
         assert os.path.exists(checkpoint_path), f"Checkpoint not saved at {checkpoint_path}"
-        print("✓ Model checkpoint saved successfully")
+        print("[OK] Model checkpoint saved successfully")
 
         # 6. Run evaluation and plotting tests
         print("Generating mock predictions for evaluation & plots...")
@@ -162,17 +162,17 @@ def run_smoke_test():
         y_pred = np.argmax(y_prob, axis=1)
 
         metrics = calculate_classification_metrics(y_true, y_pred, y_prob, num_classes=4)
-        print(f"✓ Classification metrics calculated (Accuracy: {metrics['accuracy']:.4f})")
+        print(f"[OK] Classification metrics calculated (Accuracy: {metrics['accuracy']:.4f})")
 
         cm_path = os.path.join(experiment_dir, "confusion_matrix.png")
         plot_confusion_matrix(metrics["confusion_matrix"], CLASS_NAMES, cm_path)
         assert os.path.exists(cm_path), "Confusion matrix figure not saved!"
-        print("✓ Confusion matrix figure generated")
+        print("[OK] Confusion matrix figure generated")
 
         rel_path = os.path.join(experiment_dir, "reliability_diagram.png")
         plot_reliability_diagram(y_true, y_prob, num_bins=5, save_path=rel_path)
         assert os.path.exists(rel_path), "Reliability diagram figure not saved!"
-        print("✓ Reliability diagram figure generated")
+        print("[OK] Reliability diagram figure generated")
 
         print("=" * 60)
         print("SMOKE TEST SUCCESS: The TrustOCT framework is 100% operational!")
