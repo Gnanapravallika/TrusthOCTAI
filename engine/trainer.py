@@ -1,4 +1,4 @@
-"""Trainer loop module for training and validating TrustOCT models."""
+"""Trainer loop module for training TrustOCT models."""
 
 import os
 import sys
@@ -12,8 +12,8 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from src.training.losses import EdlLoss
-from src.models import coral_loss
+from engine.losses import EdlLoss
+from models.trustoct import coral_loss
 
 
 class Trainer:

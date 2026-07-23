@@ -1,128 +1,67 @@
-"""Unified model components, domain generalization modules, and TrustOCT assembler."""
+"""Evidential heads, style-generalization layers, and TrustOCT model builder."""
 
 import os
 import random
+from abc import ABC, abstractmethod
 from typing import Tuple, Dict, Union
 import yaml
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torchvision.models as models
-from torchvision.models import ResNet50_Weights
 
-# Relative import of heads from same src directory
-from src.models.heads import SoftmaxHead, EvidentialHead
+from models.resnet50 import ResNet50Backbone
+from models.msf import MultiScaleFusion
+from models.cbam import CBAM
 
 
 # =====================================================================
-# 1. Backbones
+# 1. Prediction Heads
 # =====================================================================
 
-class ResNet50Backbone(nn.Module):
-    """ResNet50 backbone extracting intermediate layer 3 and layer 4 features."""
+class BaseHead(nn.Module, ABC):
+    """Abstract base class for all prediction heads."""
 
-    def __init__(self, pretrained: bool = True):
+    def __init__(self, in_features: int, num_classes: int):
         super().__init__()
-        weights = ResNet50_Weights.DEFAULT if pretrained else None
-        resnet = models.resnet50(weights=weights)
+        self.in_features = in_features
+        self.num_classes = num_classes
 
-        self.conv1 = resnet.conv1
-        self.bn1 = resnet.bn1
-        self.relu = resnet.relu
-        self.maxpool = resnet.maxpool
+    @abstractmethod
+    def forward(self, x: torch.Tensor):
+        pass
 
-        self.layer1 = resnet.layer1
-        self.layer2 = resnet.layer2
-        self.layer3 = resnet.layer3
-        self.layer4 = resnet.layer4
+
+class SoftmaxHead(BaseHead):
+    """Standard softmax classifier head producing class logits."""
+
+    def __init__(self, in_features: int, num_classes: int, dropout_prob: float = 0.5):
+        super().__init__(in_features, num_classes)
+        self.dropout = nn.Dropout(p=dropout_prob)
+        self.fc = nn.Linear(in_features, num_classes)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.dropout(x)
+        return self.fc(x)
+
+
+class EvidentialHead(BaseHead):
+    """Evidential classification head outputting positive Dirichlet evidence parameters."""
+
+    def __init__(self, in_features: int, num_classes: int, dropout_prob: float = 0.5):
+        super().__init__(in_features, num_classes)
+        self.dropout = nn.Dropout(p=dropout_prob)
+        self.fc = nn.Linear(in_features, num_classes)
 
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        x = self.maxpool(x)
-
-        x = self.layer1(x)
-        x = self.layer2(x)
-        
-        layer3_out = self.layer3(x)
-        layer4_out = self.layer4(layer3_out)
-
-        return layer3_out, layer4_out
+        x = self.dropout(x)
+        logits = self.fc(x)
+        evidence = F.softplus(logits)
+        alpha = evidence + 1.0
+        return evidence, alpha
 
 
 # =====================================================================
-# 2. Attention and Fusion Layers
-# =====================================================================
-
-class ChannelAttention(nn.Module):
-    def __init__(self, in_planes: int, ratio: int = 16):
-        super().__init__()
-        self.avg_pool = nn.AdaptiveAvgPool2d(1)
-        self.max_pool = nn.AdaptiveMaxPool2d(1)
-
-        self.fc = nn.Sequential(
-            nn.Conv2d(in_planes, in_planes // ratio, 1, bias=False),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_planes // ratio, in_planes, 1, bias=False)
-        )
-        self.sigmoid = nn.Sigmoid()
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        avg_out = self.fc(self.avg_pool(x))
-        max_out = self.fc(self.max_pool(x))
-        return self.sigmoid(avg_out + max_out)
-
-
-class SpatialAttention(nn.Module):
-    def __init__(self, kernel_size: int = 7):
-        super().__init__()
-        padding = 3 if kernel_size == 7 else 1
-        self.conv1 = nn.Conv2d(2, 1, kernel_size, padding=padding, bias=False)
-        self.sigmoid = nn.Sigmoid()
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        avg_out = torch.mean(x, dim=1, keepdim=True)
-        max_out, _ = torch.max(x, dim=1, keepdim=True)
-        concat = torch.cat([avg_out, max_out], dim=1)
-        return self.sigmoid(self.conv1(concat))
-
-
-class CBAM(nn.Module):
-    """Convolutional Block Attention Module."""
-
-    def __init__(self, gate_channels: int, reduction_ratio: int = 16, spatial_kernel_size: int = 7):
-        super().__init__()
-        self.channel_attention = ChannelAttention(gate_channels, reduction_ratio)
-        self.spatial_attention = SpatialAttention(spatial_kernel_size)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = x * self.channel_attention(x)
-        x = x * self.spatial_attention(x)
-        return x
-
-
-class MultiScaleFusion(nn.Module):
-    """Concatenation and channel projection of multi-scale CNN layer outputs."""
-
-    def __init__(self, layer3_channels: int = 1024, layer4_channels: int = 2048, out_channels: int = 512):
-        super().__init__()
-        in_channels = layer3_channels + layer4_channels
-        self.proj = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1, padding=0, bias=False)
-        self.bn = nn.BatchNorm2d(out_channels)
-        self.relu = nn.ReLU(inplace=True)
-
-    def forward(self, layer3_out: torch.Tensor, layer4_out: torch.Tensor) -> torch.Tensor:
-        h4, w4 = layer4_out.shape[2], layer4_out.shape[3]
-        layer3_resized = F.interpolate(layer3_out, size=(h4, w4), mode="bilinear", align_corners=False)
-        fused = torch.cat([layer3_resized, layer4_out], dim=1)
-        out = self.proj(fused)
-        out = self.bn(out)
-        return self.relu(out)
-
-
-# =====================================================================
-# 3. Domain Generalization Layers
+# 2. Domain Generalization Components
 # =====================================================================
 
 class MixStyle(nn.Module):
@@ -195,7 +134,7 @@ class CoralFeatureAlignment(nn.Module):
 
 
 # =====================================================================
-# 4. TrustOCT Unified Class
+# 3. TrustOCT Assembler
 # =====================================================================
 
 class TrustOCT(nn.Module):
@@ -284,7 +223,7 @@ class TrustOCT(nn.Module):
 
 
 # =====================================================================
-# 5. Registry Builder
+# 4. Model Builder
 # =====================================================================
 
 def build_model(model_config_path: str) -> nn.Module:

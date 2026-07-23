@@ -4,11 +4,12 @@ import os
 import sys
 import torch
 
-# Ensure src is in python path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# Ensure project root is in path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(project_root)
 
-from src.models import TrustOCT, build_model
-from src.training import EdlLoss
+from models.trustoct import TrustOCT, build_model
+from engine.losses import EdlLoss
 
 
 def verify_pipeline():

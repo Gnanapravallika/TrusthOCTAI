@@ -1,1 +1,0 @@
-"""TrustOCT Framework source package."""

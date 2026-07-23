@@ -13,12 +13,12 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import sys
 sys.path.append(project_root)
 
-from src.dataset import CLASS_NAMES, verify_dataset, generate_statistics_report
-from src.models import build_model
-from src.training import Trainer
-from src.dataset import get_dataset_and_loader
-from src.xai import calculate_classification_metrics
-from src.xai import plot_confusion_matrix, plot_reliability_diagram
+from datasets.dataset import CLASS_NAMES, get_dataset_and_loader
+from datasets.utils import verify_dataset, generate_statistics_report
+from models.trustoct import build_model
+from engine.trainer import Trainer
+from evaluation.metrics import calculate_classification_metrics, plot_confusion_matrix
+from evaluation.calibration import plot_reliability_diagram
 
 
 def run_smoke_test():
