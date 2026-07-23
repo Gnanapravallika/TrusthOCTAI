@@ -38,7 +38,12 @@ runs/
 .idea/
 
 # TrustOCT Datasets & Outputs
-datasets/
+datasets/Kermany/
+datasets/OCTID/
+datasets/raw/
+datasets/processed/
+datasets/external/
+datasets/metadata/
 outputs/
 experiments/
 *.zip
