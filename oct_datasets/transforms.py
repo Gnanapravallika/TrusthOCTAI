@@ -129,8 +129,9 @@ def get_train_transforms(config: dict) -> A.Compose:
     # Elastic/Grid Distortion, Coarse Dropout, and Random Crop are intentionally
     # excluded as they create anatomically implausible retinal structures.
     transform_list.append(
-        A.GaussNoise(var_limit=(5.0, 30.0), p=0.2)
+        A.GaussNoise(std_range=(0.02, 0.11), p=0.2)
     )
+
 
     # Step 8: ImageNet Normalization
     # Required to match the statistical distribution of the ResNet50 pretrained weights.

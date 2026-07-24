@@ -107,7 +107,8 @@ class Trainer:
             self.optimizer.zero_grad()
 
             if self.scaler is not None:
-                with torch.cuda.amp.autocast():
+                with torch.amp.autocast('cuda'):
+
                     outputs = self.model(images)
                     if self.head_type == "edl":
                         _, alpha = outputs
