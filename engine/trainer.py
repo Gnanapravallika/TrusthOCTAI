@@ -178,11 +178,7 @@ class Trainer:
         return val_loss, val_acc
 
     def fit(self) -> None:
-        print(f"\n  🚀  Training on device : {str(self.device).upper()}", flush=True)
-        print(f"  📦  Total epochs       : {self.epochs}", flush=True)
-        print(f"  📐  Train batches      : {len(self.train_loader)}", flush=True)
-        print(f"  📐  Val   batches      : {len(self.val_loader)}", flush=True)
-        print(f"  {'─'*62}", flush=True)
+        print(f"Training {self.experiment_dir.split('/')[-1]} for {self.epochs} epochs on {self.device}...", flush=True)
         for epoch in range(self.epochs):
             train_loss, train_acc = self.train_epoch(epoch)
             val_loss, val_acc = self.validate(epoch)
@@ -192,14 +188,10 @@ class Trainer:
 
             lr = self.optimizer.param_groups[0]["lr"]
 
-            improved = val_loss < self.best_val_loss
-            flag = "✅ Best" if improved else "      "
-
             print(
-                f"  Epoch {epoch+1:02d}/{self.epochs}  │"
-                f"  Train  loss={train_loss:.4f}  acc={train_acc*100:5.2f}%  │"
-                f"  Val  loss={val_loss:.4f}  acc={val_acc*100:5.2f}%  │"
-                f"  lr={lr:.2e}  {flag}",
+                f"Epoch {epoch+1}/{self.epochs} | "
+                f"Loss: {train_loss:.4f} Acc: {train_acc:.4f} | "
+                f"Val Loss: {val_loss:.4f} Acc: {val_acc:.4f}",
                 flush=True
             )
 
@@ -210,14 +202,15 @@ class Trainer:
                 self.tb_writer.add_scalar("Accuracy/val", val_acc, epoch)
                 self.tb_writer.add_scalar("LR", lr, epoch)
 
-            if improved:
+            if val_loss < self.best_val_loss:
                 self.best_val_loss = val_loss
                 self.patience_counter = 0
                 self._save_checkpoint(epoch, val_loss, is_best=True)
+                print(f"\u2705 Best model updated! Val Acc: {val_acc:.4f}", flush=True)
             else:
                 self.patience_counter += 1
                 if self.patience_counter >= self.patience:
-                    print(f"  ⏹️  Early stopping at epoch {epoch+1}  (patience={self.patience} exhausted)", flush=True)
+                    print(f"Early stopping at epoch {epoch+1}.", flush=True)
                     break
 
             if (epoch + 1) % self.train_cfg.get("checkpoint", {}).get("save_freq", 5) == 0:
@@ -225,8 +218,7 @@ class Trainer:
 
         if self.tb_writer:
             self.tb_writer.close()
-        print(f"  {'─'*62}", flush=True)
-        print(f"  🏁  Training complete!", flush=True)
+        print("Training complete.", flush=True)
 
     def _save_checkpoint(self, epoch: int, val_loss: float, is_best: bool = False) -> None:
         os.makedirs(self.experiment_dir, exist_ok=True)
@@ -244,8 +236,6 @@ class Trainer:
             filepath = os.path.join(self.experiment_dir, f"checkpoint_epoch_{epoch+1}.pth")
 
         torch.save(state, filepath)
-        label = "💾  Best weights saved" if is_best else "💾  Checkpoint saved"
-        print(f"      {label} → {os.path.basename(filepath)}", flush=True)
 
 
 def run_experiment(
