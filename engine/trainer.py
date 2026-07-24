@@ -178,7 +178,7 @@ class Trainer:
         return val_loss, val_acc
 
     def fit(self) -> None:
-        print(f"Starting training on device: {self.device}")
+        print(f"Starting training on device: {self.device}", flush=True)
         for epoch in range(self.epochs):
             train_loss, train_acc = self.train_epoch(epoch)
             val_loss, val_acc = self.validate(epoch)
@@ -187,7 +187,13 @@ class Trainer:
                 self.scheduler.step()
 
             lr = self.optimizer.param_groups[0]["lr"]
-            print(f"Epoch {epoch+1:02d} | Train Loss: {train_loss:.4f} Acc: {train_acc:.4f} | Val Loss: {val_loss:.4f} Acc: {val_acc:.4f} | LR: {lr:.6f}")
+            print(
+                f"Epoch {epoch+1:02d}/{self.epochs} | "
+                f"Train Loss: {train_loss:.4f} Acc: {train_acc*100:.2f}% | "
+                f"Val Loss: {val_loss:.4f} Acc: {val_acc*100:.2f}% | "
+                f"LR: {lr:.6f}",
+                flush=True
+            )
 
             if self.tb_writer:
                 self.tb_writer.add_scalar("Loss/train", train_loss, epoch)
@@ -203,7 +209,7 @@ class Trainer:
             else:
                 self.patience_counter += 1
                 if self.patience_counter >= self.patience:
-                    print(f"Early stopping triggered at epoch {epoch+1} due to validation loss plateau.")
+                    print(f"Early stopping triggered at epoch {epoch+1} due to validation loss plateau.", flush=True)
                     break
 
             if (epoch + 1) % self.train_cfg.get("checkpoint", {}).get("save_freq", 5) == 0:
@@ -211,7 +217,7 @@ class Trainer:
 
         if self.tb_writer:
             self.tb_writer.close()
-        print("Training complete.")
+        print("Training complete.", flush=True)
 
     def _save_checkpoint(self, epoch: int, val_loss: float, is_best: bool = False) -> None:
         os.makedirs(self.experiment_dir, exist_ok=True)
@@ -229,7 +235,7 @@ class Trainer:
             filepath = os.path.join(self.experiment_dir, f"checkpoint_epoch_{epoch+1}.pth")
 
         torch.save(state, filepath)
-        print(f"Saved weights: {os.path.basename(filepath)}")
+        print(f"Saved weights: {os.path.basename(filepath)}", flush=True)
 
 
 def run_experiment(
