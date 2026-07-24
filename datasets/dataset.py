@@ -166,3 +166,98 @@ def get_dataset_and_loader(
     )
 
     return dataset, loader
+
+
+class DataFrameOCTDataset(Dataset):
+    """OCT Dataset loader from a Pandas DataFrame for custom splits."""
+
+    def __init__(self, df: 'pd.DataFrame', transform: Optional[Callable] = None):
+        self.df = df.reset_index(drop=True)
+        self.transform = transform
+
+    def __len__(self) -> int:
+        return len(self.df)
+
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, int]:
+        row = self.df.iloc[idx]
+        filepath = row["image_path"]
+        label = int(row["label"])
+
+        try:
+            image = Image.open(filepath).convert("RGB")
+            image_np = np.array(image)
+        except Exception as e:
+            raise RuntimeError(f"Error loading image {filepath}: {e}")
+
+        if self.transform:
+            augmented = self.transform(image=image_np)
+            image_tensor = augmented["image"]
+        else:
+            image_tensor = torch.from_numpy(image_np.transpose(2, 0, 1)).float() / 255.0
+
+        return image_tensor, label
+
+
+def auto_detect_columns(df) -> 'pd.DataFrame':
+    """Standardize column names by detecting mapping key variations."""
+    rename_dict = {}
+    for col in df.columns:
+        col_lower = col.lower()
+        if "path" in col_lower or "file" in col_lower:
+            rename_dict[col] = "image_path"
+        elif "label" in col_lower or "class" in col_lower or "target" in col_lower:
+            rename_dict[col] = "label"
+        elif "patient" in col_lower or "subject" in col_lower or "pt_id" in col_lower:
+            rename_dict[col] = "patient_id"
+            
+    df = df.rename(columns=rename_dict)
+    
+    # Ensure required columns exist, if not create dummy patient_id
+    if "image_path" not in df.columns:
+        raise ValueError("Could not detect image path column in DataFrame.")
+    if "label" not in df.columns:
+        raise ValueError("Could not detect label column in DataFrame.")
+    if "patient_id" not in df.columns:
+        # Generate dummy patient ID from file name
+        import os
+        df["patient_id"] = df["image_path"].apply(lambda x: os.path.basename(x).split('_')[0])
+        
+    return df
+
+
+def patient_level_split(
+    df,
+    val_size: float = 0.1,
+    test_size: float = 0.1,
+    random_seed: int = 42
+) -> Tuple['pd.DataFrame', 'pd.DataFrame', 'pd.DataFrame']:
+    """Perform a patient-level stratified-like train/val/test split to prevent leakage."""
+    # Group by patient to find their labels
+    patient_data = df.groupby("patient_id")["label"].first().reset_index()
+    
+    # Stratified split using sklearn
+    from sklearn.model_selection import train_test_split
+    
+    train_val_pts, test_pts = train_test_split(
+        patient_data,
+        test_size=test_size,
+        random_state=random_seed,
+        stratify=patient_data["label"]
+    )
+    
+    # Adjust val size relative to the train_val subset size
+    val_rel_size = val_size / (1.0 - test_size)
+    
+    train_pts, val_pts = train_test_split(
+        train_val_pts,
+        test_size=val_rel_size,
+        random_state=random_seed,
+        stratify=train_val_pts["label"]
+    )
+    
+    train_df = df[df["patient_id"].isin(train_pts["patient_id"])].reset_index(drop=True)
+    val_df = df[df["patient_id"].isin(val_pts["patient_id"])].reset_index(drop=True)
+    test_df = df[df["patient_id"].isin(test_pts["patient_id"])].reset_index(drop=True)
+    
+    return train_df, val_df, test_df
+
