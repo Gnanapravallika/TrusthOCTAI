@@ -13,12 +13,16 @@ drive.mount('/content/drive')
 
 # Clone GitHub repository
 import os
-if not os.path.exists('TrusthOCTAI'):
+import sys
+if not os.path.exists('/content/TrusthOCTAI'):
     !git clone https://github.com/Gnanapravallika/TrusthOCTAI.git
-    %cd TrusthOCTAI
+    %cd /content/TrusthOCTAI
 else:
-    %cd TrusthOCTAI
+    %cd /content/TrusthOCTAI
     !git pull origin main
+
+if '/content/TrusthOCTAI' not in sys.path:
+    sys.path.append('/content/TrusthOCTAI')
 
 # Install dependencies
 !pip install -r requirements.txt
@@ -51,6 +55,13 @@ if torch.cuda.is_available():
 
 # ## Section 2 — Configuration
 
+import sys
+import os
+if os.path.exists('/content/TrusthOCTAI'):
+    %cd /content/TrusthOCTAI
+if '/content/TrusthOCTAI' not in sys.path:
+    sys.path.append('/content/TrusthOCTAI')
+
 import yaml
 
 # Load configurations
@@ -71,7 +82,13 @@ print(yaml.dump(dataset_cfg))
 
 # ## Section 3 — Dataset Verification
 
+import sys
 import os
+if os.path.exists('/content/TrusthOCTAI'):
+    %cd /content/TrusthOCTAI
+if '/content/TrusthOCTAI' not in sys.path:
+    sys.path.append('/content/TrusthOCTAI')
+
 from datasets.dataset import auto_detect_columns, patient_level_split
 
 # Download dataset cell if not exists
@@ -158,6 +175,13 @@ else:
 
 # ## Section 4 — Data Loading
 
+import sys
+import os
+if os.path.exists('/content/TrusthOCTAI'):
+    %cd /content/TrusthOCTAI
+if '/content/TrusthOCTAI' not in sys.path:
+    sys.path.append('/content/TrusthOCTAI')
+
 from datasets.dataset import DataFrameOCTDataset, get_dataset_and_loader, CLASS_NAMES
 from datasets.transforms import get_train_transforms, get_val_transforms
 from torch.utils.data import DataLoader
@@ -191,6 +215,13 @@ plt.show()
 
 # ## Section 5 — Build Model
 
+import sys
+import os
+if os.path.exists('/content/TrusthOCTAI'):
+    %cd /content/TrusthOCTAI
+if '/content/TrusthOCTAI' not in sys.path:
+    sys.path.append('/content/TrusthOCTAI')
+
 from models.trustoct import build_model
 
 model = build_model('configs/model.yaml')
@@ -204,6 +235,13 @@ print(f"Trainable Parameters: {trainable_params:,}")
 
 # ## Section 6 — Training Setup
 
+import sys
+import os
+if os.path.exists('/content/TrusthOCTAI'):
+    %cd /content/TrusthOCTAI
+if '/content/TrusthOCTAI' not in sys.path:
+    sys.path.append('/content/TrusthOCTAI')
+
 import torch.nn as nn
 
 criterion = nn.CrossEntropyLoss()
@@ -216,6 +254,13 @@ print(f"Scheduler: {scheduler.__class__.__name__}")
 
 
 # ## Section 7 — Model Training
+
+import sys
+import os
+if os.path.exists('/content/TrusthOCTAI'):
+    %cd /content/TrusthOCTAI
+if '/content/TrusthOCTAI' not in sys.path:
+    sys.path.append('/content/TrusthOCTAI')
 
 from engine.trainer import run_experiment
 
@@ -234,6 +279,13 @@ results = run_experiment('msf_cbam_resnet50', train_df, val_df, test_df, epochs=
 
 
 # ## Section 8 — Final Evaluation
+
+import sys
+import os
+if os.path.exists('/content/TrusthOCTAI'):
+    %cd /content/TrusthOCTAI
+if '/content/TrusthOCTAI' not in sys.path:
+    sys.path.append('/content/TrusthOCTAI')
 
 from engine.tester import test_model
 from evaluation.metrics import calculate_classification_metrics
@@ -254,6 +306,13 @@ for k, v in results.items():
 
 
 # ## Section 8B — Ablation Study Summary Table
+
+import sys
+import os
+if os.path.exists('/content/TrusthOCTAI'):
+    %cd /content/TrusthOCTAI
+if '/content/TrusthOCTAI' not in sys.path:
+    sys.path.append('/content/TrusthOCTAI')
 
 import pandas as pd
 from models.trustoct import TrustOCT
@@ -301,6 +360,13 @@ ablation_df.to_csv('outputs/reports/table_3_ablation_study.csv', index=False)
 
 # ## Section 9 — Confusion Matrix
 
+import sys
+import os
+if os.path.exists('/content/TrusthOCTAI'):
+    %cd /content/TrusthOCTAI
+if '/content/TrusthOCTAI' not in sys.path:
+    sys.path.append('/content/TrusthOCTAI')
+
 from evaluation.metrics import plot_confusion_matrix
 from sklearn.metrics import classification_report
 
@@ -318,6 +384,13 @@ print(classification_report(y_true, y_pred, target_names=CLASS_NAMES))
 
 
 # ## Section 10 — Calibration
+
+import sys
+import os
+if os.path.exists('/content/TrusthOCTAI'):
+    %cd /content/TrusthOCTAI
+if '/content/TrusthOCTAI' not in sys.path:
+    sys.path.append('/content/TrusthOCTAI')
 
 from evaluation.calibration import calculate_ece, calculate_brier_score, plot_reliability_diagram
 
@@ -337,6 +410,13 @@ print(f"Brier Score: {brier:.4f}")
 
 
 # ## Section 11 — Explainability
+
+import sys
+import os
+if os.path.exists('/content/TrusthOCTAI'):
+    %cd /content/TrusthOCTAI
+if '/content/TrusthOCTAI' not in sys.path:
+    sys.path.append('/content/TrusthOCTAI')
 
 from explainability.visualization import compare_and_save_visualizations
 
@@ -378,6 +458,13 @@ plt.show()
 
 # ## Section 12 — Robustness
 
+import sys
+import os
+if os.path.exists('/content/TrusthOCTAI'):
+    %cd /content/TrusthOCTAI
+if '/content/TrusthOCTAI' not in sys.path:
+    sys.path.append('/content/TrusthOCTAI')
+
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 
@@ -406,6 +493,13 @@ for perturb_name, transform in [
 
 
 # ## Section 13 — External Validation
+
+import sys
+import os
+if os.path.exists('/content/TrusthOCTAI'):
+    %cd /content/TrusthOCTAI
+if '/content/TrusthOCTAI' not in sys.path:
+    sys.path.append('/content/TrusthOCTAI')
 
 # Load external dataset (OCTID) if available
 external_path = dataset_cfg.get('paths', {}).get('external', 'datasets/OCTID')
