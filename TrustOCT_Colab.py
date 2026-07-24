@@ -111,7 +111,7 @@ if os.path.exists('/content/TrusthOCTAI'):
 if '/content/TrusthOCTAI' not in sys.path:
     sys.path.append('/content/TrusthOCTAI')
 
-from datasets.dataset import auto_detect_columns, patient_level_split
+from oct_datasets.dataset import auto_detect_columns, patient_level_split
 
 csv_path = 'kermany_dataset_mapping.csv'
 
@@ -189,8 +189,8 @@ if os.path.exists('/content/TrusthOCTAI'):
 if '/content/TrusthOCTAI' not in sys.path:
     sys.path.append('/content/TrusthOCTAI')
 
-from datasets.dataset import DataFrameOCTDataset, get_dataset_and_loader, CLASS_NAMES
-from datasets.transforms import get_train_transforms, get_val_transforms
+from oct_datasets.dataset import DataFrameOCTDataset, get_dataset_and_loader, CLASS_NAMES
+from oct_datasets.transforms import get_train_transforms, get_val_transforms
 from torch.utils.data import DataLoader
 
 # Create transforms and loaders dynamically
@@ -541,4 +541,5 @@ print(f"ECE         : {ece:.4f}")
 print(f"Brier Score : {brier:.4f}")
 print("Checkpoint Saved : ✓")
 print("==================================")
+
 

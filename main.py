@@ -14,7 +14,7 @@ import yaml
 project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(project_root)
 
-from datasets.dataset import get_dataset_and_loader, verify_dataset, generate_statistics_report
+from oct_datasets.dataset import get_dataset_and_loader, verify_dataset, generate_statistics_report
 from models.trustoct import build_model
 from engine.trainer import Trainer
 from engine.tester import test_model

@@ -245,8 +245,8 @@ def run_experiment(
     import os
     import pandas as pd
     from torch.utils.data import DataLoader
-    from datasets.dataset import DataFrameOCTDataset
-    from datasets.transforms import get_train_transforms, get_val_transforms
+    from oct_datasets.dataset import DataFrameOCTDataset
+    from oct_datasets.transforms import get_train_transforms, get_val_transforms
     from models.trustoct import TrustOCT
     from engine.tester import test_model
     from evaluation.metrics import calculate_classification_metrics, plot_confusion_matrix

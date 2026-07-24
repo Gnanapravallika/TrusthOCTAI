@@ -13,8 +13,8 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 import sys
 sys.path.append(project_root)
 
-from datasets.dataset import CLASS_NAMES, get_dataset_and_loader
-from datasets.utils import verify_dataset, generate_statistics_report
+from oct_datasets.dataset import CLASS_NAMES, get_dataset_and_loader
+from oct_datasets.utils import verify_dataset, generate_statistics_report
 from models.trustoct import build_model
 from engine.trainer import Trainer
 from evaluation.metrics import calculate_classification_metrics, plot_confusion_matrix

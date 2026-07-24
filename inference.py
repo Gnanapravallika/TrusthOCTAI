@@ -13,8 +13,8 @@ project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(project_root)
 
 from models.trustoct import build_model
-from datasets.transforms import get_val_transforms
-from datasets.dataset import CLASS_NAMES
+from oct_datasets.transforms import get_val_transforms
+from oct_datasets.dataset import CLASS_NAMES
 
 
 def parse_args():

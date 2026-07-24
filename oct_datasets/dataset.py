@@ -126,8 +126,8 @@ def get_dataset_and_loader(
     augmentation_config_path: str
 ) -> Tuple[KermanyDataset, DataLoader]:
     """Factory loading transforms and datasets from YAML configs."""
-    # Lazy imports to avoid circular dependencies
-    from datasets.transforms import get_train_transforms, get_val_transforms
+    from oct_datasets.transforms import get_train_transforms, get_val_transforms
+
 
     with open(dataset_config_path, "r") as f:
         dataset_cfg = yaml.safe_load(f)

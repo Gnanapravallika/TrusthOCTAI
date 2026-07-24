@@ -6,7 +6,8 @@ from typing import Dict, List, Tuple
 import yaml
 import numpy as np
 from PIL import Image
-from datasets.dataset import CLASS_NAMES, CLASS_TO_INDEX, SUPPORTED_EXTENSIONS
+from oct_datasets.dataset import CLASS_NAMES, CLASS_TO_INDEX, SUPPORTED_EXTENSIONS
+
 
 
 def verify_folder_structure(train_path: str, val_path: str, test_path: str) -> List[str]:
