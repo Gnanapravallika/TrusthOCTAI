@@ -7,7 +7,7 @@ pretrained: true
 feature_module: "multiscale"  # Options: multiscale, identity
 attention: "cbam"             # Options: cbam, none
 
-domain_generalization: "mixstyle"  # Options: mixstyle, coral, identity
+domain_generalization: "identity"  # Options: mixstyle, coral, identity
 mixstyle:
   layer_names: ["layer1", "layer2"]
   mix_prob: 0.5
@@ -15,6 +15,6 @@ mixstyle:
 coral:
   weight: 0.5
 
-head: "edl"                   # Options: edl, softmax
+head: "softmax"                   # Options: edl, softmax
 num_classes: 4                # Normal, CNV, DME, Drusen
 dropout: 0.5

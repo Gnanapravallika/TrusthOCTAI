@@ -200,26 +200,55 @@ class TrustOCT(nn.Module):
         else:
             raise ValueError(f"Unknown head type '{head_type}'")
 
-    def forward(self, x: torch.Tensor):
+        # 6. Weight Initialization
+        self._initialize_weights()
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.xavier_uniform_(m.weight)
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0.0)
+            elif isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0.0)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1.0)
+                nn.init.constant_(m.bias, 0.0)
+
+    def forward(self, x: torch.Tensor, return_features: bool = False):
         layer3_out, layer4_out = self.backbone(x)
 
         if self.dg_type == "mixstyle":
             layer3_out = self.dg(layer3_out)
 
         if self.use_multiscale:
-            features = self.fusion(layer3_out, layer4_out)
+            x_fused = self.fusion(layer3_out, layer4_out)
         else:
-            features = layer4_out
+            x_fused = layer4_out
 
         if self.use_cbam:
-            features = self.attention(features)
+            x_att = self.attention(x_fused)
+        else:
+            x_att = x_fused
 
         if self.dg_type == "coral":
-            features = self.dg(features)
+            x_att = self.dg(x_att)
 
-        pooled = self.pool(features)
-        pooled = torch.flatten(pooled, start_dim=1)
-        return self.head(pooled)
+        feat = self.pool(x_att)
+        feat = torch.flatten(feat, start_dim=1)
+        
+        logits_out = self.head(feat)
+
+        if return_features:
+            return {
+                "logits": logits_out,
+                "embedding": feat,
+                "attention": x_att,
+                "fusion": x_fused
+            }
+        return logits_out
 
 
 # =====================================================================
