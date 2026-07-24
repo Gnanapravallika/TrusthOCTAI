@@ -1,4 +1,25 @@
-"""Bilateral filter, CLAHE and normalization transformations for TrustOCT."""
+"""Bilateral filter, CLAHE and normalization transformations for TrustOCT.
+
+Training pipeline (8 steps):
+    1. Bilateral Filter    — OCT speckle noise removal (edge-preserving)
+    2. CLAHE               — Retinal layer contrast enhancement
+    3. Resize (224x224)    — Required for ResNet50 input
+    4. Random Rotation     — ±15°, simulates patient positioning variation
+    5. Horizontal Flip     — Simulates left/right retinal scan variation
+    6. Brightness/Contrast — Simulates illumination variability across scanners
+    7. Gaussian Noise      — Simulates OCT scanner noise variability (p=0.2)
+    8. ImageNet Normalize  — Match pretrained ResNet50 statistics
+
+Validation/Test pipeline (4 steps, deterministic):
+    1. Bilateral Filter    — Same as training for consistency
+    2. CLAHE               — Same as training for consistency
+    3. Resize (224x224)    — Required for ResNet50 input
+    4. ImageNet Normalize  — Match pretrained ResNet50 statistics
+
+Note: Elastic Distortion, Grid Distortion, Coarse Dropout, and Random Crop
+are intentionally excluded. These create anatomically implausible retinal
+images and cannot be clinically justified for OCT B-scan classification.
+"""
 
 import cv2
 import numpy as np
@@ -8,7 +29,12 @@ from albumentations.core.transforms_interface import ImageOnlyTransform
 
 
 class BilateralFilter(ImageOnlyTransform):
-    """Custom Albumentations wrapper for OpenCV Bilateral Filter."""
+    """Custom Albumentations wrapper for OpenCV Bilateral Filter.
+
+    Reduces OCT speckle noise while preserving sharp retinal layer edges.
+    This is an edge-preserving smoothing filter — unlike Gaussian blur,
+    it does not blur across layer boundaries.
+    """
 
     def __init__(
         self,
@@ -35,14 +61,19 @@ class BilateralFilter(ImageOnlyTransform):
 
 
 def get_train_transforms(config: dict) -> A.Compose:
-    """Build train transformation pipeline based on YAML configuration."""
+    """Build training transformation pipeline based on YAML configuration.
+
+    Returns a clinically justified 8-step pipeline for OCT B-scan augmentation.
+    Each step is evidence-based and reproducible for dissertation documentation.
+    """
     preprocessing_cfg = config.get("preprocessing", {})
     augmentations_cfg = config.get("augmentations", {})
     resize_h, resize_w = preprocessing_cfg.get("resize", [224, 224])
-    
+
     transform_list = []
 
-    # 1. Bilateral Denoising
+    # Step 1: Bilateral Denoising
+    # Removes OCT speckle noise while preserving retinal layer boundaries.
     bf_cfg = preprocessing_cfg.get("bilateral_filter", {})
     if bf_cfg.get("enabled", True):
         transform_list.append(
@@ -54,7 +85,8 @@ def get_train_transforms(config: dict) -> A.Compose:
             )
         )
 
-    # 2. Contrast Enhancement CLAHE
+    # Step 2: CLAHE — Contrast Limited Adaptive Histogram Equalization
+    # Enhances retinal layer contrast. Widely used in OCT preprocessing literature.
     clahe_cfg = preprocessing_cfg.get("clahe", {})
     if clahe_cfg.get("enabled", True):
         transform_list.append(
@@ -65,18 +97,23 @@ def get_train_transforms(config: dict) -> A.Compose:
             )
         )
 
-    # 3. Resize
+    # Step 3: Resize to 224x224 — required for ResNet50 input dimensions
     transform_list.append(A.Resize(height=resize_h, width=resize_w))
 
-    # 4. Augmentations
+    # Step 4: Random Rotation (±15°)
+    # Simulates slight variations in patient head positioning during OCT scan.
     rot_cfg = augmentations_cfg.get("random_rotate", {})
     transform_list.append(
         A.Rotate(limit=rot_cfg.get("limit", 15), p=rot_cfg.get("p", 0.5))
     )
 
+    # Step 5: Horizontal Flip
+    # Simulates scanning the left vs right eye (mirror-image retinal anatomy).
     hf_cfg = augmentations_cfg.get("horizontal_flip", {})
     transform_list.append(A.HorizontalFlip(p=hf_cfg.get("p", 0.5)))
 
+    # Step 6: Random Brightness/Contrast
+    # Simulates illumination variability across different OCT scanner models.
     bc_cfg = augmentations_cfg.get("random_brightness_contrast", {})
     transform_list.append(
         A.RandomBrightnessContrast(
@@ -86,7 +123,17 @@ def get_train_transforms(config: dict) -> A.Compose:
         )
     )
 
-    # 5. Normalization
+    # Step 7: Gaussian Noise (p=0.2)
+    # Simulates varying sensor noise from different OCT scanner manufacturers.
+    # Low probability used intentionally to avoid degrading meaningful scan features.
+    # Elastic/Grid Distortion, Coarse Dropout, and Random Crop are intentionally
+    # excluded as they create anatomically implausible retinal structures.
+    transform_list.append(
+        A.GaussNoise(var_limit=(5.0, 30.0), p=0.2)
+    )
+
+    # Step 8: ImageNet Normalization
+    # Required to match the statistical distribution of the ResNet50 pretrained weights.
     norm_cfg = augmentations_cfg.get("normalize", {})
     transform_list.append(
         A.Normalize(
@@ -96,21 +143,25 @@ def get_train_transforms(config: dict) -> A.Compose:
         )
     )
 
-    # 6. Tensor conversion
+    # Tensor conversion — convert NumPy HWC array to PyTorch CHW tensor
     transform_list.append(ToTensorV2())
 
     return A.Compose(transform_list)
 
 
 def get_val_transforms(config: dict) -> A.Compose:
-    """Build validation/testing transformation pipeline (no augmentations)."""
+    """Build validation/testing transformation pipeline.
+
+    Deterministic 4-step pipeline — no stochastic augmentations.
+    This ensures reproducible, consistent evaluation reflecting real deployment.
+    """
     preprocessing_cfg = config.get("preprocessing", {})
     augmentations_cfg = config.get("augmentations", {})
     resize_h, resize_w = preprocessing_cfg.get("resize", [224, 224])
-    
+
     transform_list = []
 
-    # 1. Bilateral Denoising
+    # Step 1: Bilateral Denoising (same as training for consistency)
     bf_cfg = preprocessing_cfg.get("bilateral_filter", {})
     if bf_cfg.get("enabled", True):
         transform_list.append(
@@ -122,7 +173,7 @@ def get_val_transforms(config: dict) -> A.Compose:
             )
         )
 
-    # 2. Contrast Enhancement CLAHE
+    # Step 2: CLAHE (same as training for consistency)
     clahe_cfg = preprocessing_cfg.get("clahe", {})
     if clahe_cfg.get("enabled", True):
         transform_list.append(
@@ -133,10 +184,10 @@ def get_val_transforms(config: dict) -> A.Compose:
             )
         )
 
-    # 3. Resize
+    # Step 3: Resize to 224x224
     transform_list.append(A.Resize(height=resize_h, width=resize_w))
 
-    # 4. Normalization
+    # Step 4: ImageNet Normalization
     norm_cfg = augmentations_cfg.get("normalize", {})
     transform_list.append(
         A.Normalize(
@@ -146,7 +197,7 @@ def get_val_transforms(config: dict) -> A.Compose:
         )
     )
 
-    # 5. Tensor conversion
+    # Tensor conversion
     transform_list.append(ToTensorV2())
 
     return A.Compose(transform_list)
