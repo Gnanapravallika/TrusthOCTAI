@@ -80,18 +80,11 @@ print("\n=== Dataset Configuration ===")
 print(yaml.dump(dataset_cfg))
 
 
-# ## Section 3 — Dataset Verification
+# ## Section 3 — Dataset Verification (Part A: Kaggle Download)
 
-import sys
 import os
-if os.path.exists('/content/TrusthOCTAI'):
-    %cd /content/TrusthOCTAI
-if '/content/TrusthOCTAI' not in sys.path:
-    sys.path.append('/content/TrusthOCTAI')
 
-from datasets.dataset import auto_detect_columns, patient_level_split
-
-# Download dataset cell if not exists
+# Download dataset cell if not exists locally
 if not os.path.exists('/content/Kermany') and not os.path.exists('/content/OCT2017'):
     try:
         from google.colab import files
@@ -105,6 +98,20 @@ if not os.path.exists('/content/Kermany') and not os.path.exists('/content/OCT20
             print('Dataset downloaded successfully.')
     except Exception as e:
         print(f'Skipped: {e}')
+else:
+    print('Dataset directory already exists locally.')
+
+
+# ## Section 3 — Dataset Verification (Part B: Scanning & Patient Splits)
+
+import sys
+import os
+if os.path.exists('/content/TrusthOCTAI'):
+    %cd /content/TrusthOCTAI
+if '/content/TrusthOCTAI' not in sys.path:
+    sys.path.append('/content/TrusthOCTAI')
+
+from datasets.dataset import auto_detect_columns, patient_level_split
 
 csv_path = 'kermany_dataset_mapping.csv'
 
