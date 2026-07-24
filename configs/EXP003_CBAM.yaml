@@ -1,9 +1,9 @@
-# EXP003: ResNet50 + CBAM Attention Gate
+# EXP003: ResNet50 + MSF + CBAM
 name: "EXP003_CBAM"
 backbone: "resnet50"
 pretrained: true
 
-feature_module: "identity"
+feature_module: "multiscale"
 attention: "cbam"
 domain_generalization: "identity"
 
