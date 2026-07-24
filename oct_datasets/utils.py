@@ -1,6 +1,7 @@
 """Dataset scanning and automatic mapping utilities for Kermany OCT dataset."""
 
 import os
+import glob
 import pandas as pd
 from oct_datasets.dataset import CLASS_TO_IDX
 
@@ -10,8 +11,8 @@ def scan_kermany_dataset(data_dir: str = "datasets/Kermany/OCT2017") -> pd.DataF
     records = []
     supported_exts = ('.jpeg', '.jpg', '.png')
 
-    if not os.path.exists(data_dir):
-        # Look in common alternative Kaggle download locations
+    if not os.path.exists(data_dir) or len(os.listdir(data_dir)) == 0 if os.path.exists(data_dir) else True:
+        # Look in common alternative Kaggle download locations including kagglehub cache
         alt_paths = [
             "/content/OCT2017",
             "/content/OCT2017/OCT2017 ",
@@ -19,6 +20,10 @@ def scan_kermany_dataset(data_dir: str = "datasets/Kermany/OCT2017") -> pd.DataF
             "/content/datasets/Kermany/OCT2017",
             "/content/drive/MyDrive/OCT2017"
         ]
+        # Add kagglehub cache search pattern
+        kagglehub_matches = glob.glob("/root/.cache/kagglehub/datasets/paultimothymooney/kermany2017/**/OCT2017*", recursive=True)
+        alt_paths.extend(kagglehub_matches)
+
         for alt in alt_paths:
             if os.path.exists(alt):
                 data_dir = alt
