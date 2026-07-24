@@ -178,7 +178,11 @@ class Trainer:
         return val_loss, val_acc
 
     def fit(self) -> None:
-        print(f"Starting training on device: {self.device}", flush=True)
+        print(f"\n  🚀  Training on device : {str(self.device).upper()}", flush=True)
+        print(f"  📦  Total epochs       : {self.epochs}", flush=True)
+        print(f"  📐  Train batches      : {len(self.train_loader)}", flush=True)
+        print(f"  📐  Val   batches      : {len(self.val_loader)}", flush=True)
+        print(f"  {'─'*62}", flush=True)
         for epoch in range(self.epochs):
             train_loss, train_acc = self.train_epoch(epoch)
             val_loss, val_acc = self.validate(epoch)
@@ -187,11 +191,15 @@ class Trainer:
                 self.scheduler.step()
 
             lr = self.optimizer.param_groups[0]["lr"]
+
+            improved = val_loss < self.best_val_loss
+            flag = "✅ Best" if improved else "      "
+
             print(
-                f"Epoch {epoch+1:02d}/{self.epochs} | "
-                f"Train Loss: {train_loss:.4f} Acc: {train_acc*100:.2f}% | "
-                f"Val Loss: {val_loss:.4f} Acc: {val_acc*100:.2f}% | "
-                f"LR: {lr:.6f}",
+                f"  Epoch {epoch+1:02d}/{self.epochs}  │"
+                f"  Train  loss={train_loss:.4f}  acc={train_acc*100:5.2f}%  │"
+                f"  Val  loss={val_loss:.4f}  acc={val_acc*100:5.2f}%  │"
+                f"  lr={lr:.2e}  {flag}",
                 flush=True
             )
 
@@ -202,14 +210,14 @@ class Trainer:
                 self.tb_writer.add_scalar("Accuracy/val", val_acc, epoch)
                 self.tb_writer.add_scalar("LR", lr, epoch)
 
-            if val_loss < self.best_val_loss:
+            if improved:
                 self.best_val_loss = val_loss
                 self.patience_counter = 0
                 self._save_checkpoint(epoch, val_loss, is_best=True)
             else:
                 self.patience_counter += 1
                 if self.patience_counter >= self.patience:
-                    print(f"Early stopping triggered at epoch {epoch+1} due to validation loss plateau.", flush=True)
+                    print(f"  ⏹️  Early stopping at epoch {epoch+1}  (patience={self.patience} exhausted)", flush=True)
                     break
 
             if (epoch + 1) % self.train_cfg.get("checkpoint", {}).get("save_freq", 5) == 0:
@@ -217,7 +225,8 @@ class Trainer:
 
         if self.tb_writer:
             self.tb_writer.close()
-        print("Training complete.", flush=True)
+        print(f"  {'─'*62}", flush=True)
+        print(f"  🏁  Training complete!", flush=True)
 
     def _save_checkpoint(self, epoch: int, val_loss: float, is_best: bool = False) -> None:
         os.makedirs(self.experiment_dir, exist_ok=True)
@@ -235,7 +244,8 @@ class Trainer:
             filepath = os.path.join(self.experiment_dir, f"checkpoint_epoch_{epoch+1}.pth")
 
         torch.save(state, filepath)
-        print(f"Saved weights: {os.path.basename(filepath)}", flush=True)
+        label = "💾  Best weights saved" if is_best else "💾  Checkpoint saved"
+        print(f"      {label} → {os.path.basename(filepath)}", flush=True)
 
 
 def run_experiment(
@@ -274,11 +284,16 @@ def run_experiment(
     else:
         raise ValueError(f"Unknown model name: {model_name}")
 
-    print(f"\n==============================================")
-    print(f"Starting Experiment: {model_name}")
-    print(f"  - MSF Fusion: {use_multiscale}")
-    print(f"  - CBAM Gate:  {use_cbam}")
-    print(f"==============================================")
+    msf_icon  = "✅" if use_multiscale else "❌"
+    cbam_icon = "✅" if use_cbam      else "❌"
+    exp_map   = {"resnet50": "EXP001", "msf_resnet50": "EXP002", "msf_cbam_resnet50": "EXP003"}
+    exp_id    = exp_map.get(model_name_lower, "EXP???")
+    print(f"\n  {'═'*62}", flush=True)
+    print(f"  🔬  {exp_id}  —  {model_name.upper()}", flush=True)
+    print(f"  {'═'*62}", flush=True)
+    print(f"      Multi-Scale Fusion (MSF) : {msf_icon}", flush=True)
+    print(f"      CBAM Attention Gate      : {cbam_icon}", flush=True)
+    print(f"  {'─'*62}", flush=True)
 
     # 2. Build datasets & load transforms
     combined_cfg = {
@@ -378,12 +393,16 @@ def run_experiment(
     plot_confusion_matrix(results["confusion_matrix"], ["CNV", "DME", "DRUSEN", "NORMAL"], os.path.join(experiment_dir, "confusion_matrix.png"))
     plot_reliability_diagram(y_true, y_prob, num_bins=10, save_path=os.path.join(experiment_dir, "reliability_diagram.png"))
 
-    print(f"==============================================")
-    print(f"Completed Experiment: {model_name}")
-    print(f"Accuracy:    {results['accuracy']*100:.2f}%")
-    print(f"Macro F1:    {results['f1_score']*100:.2f}%")
-    print(f"ECE Score:   {ece:.4f}")
-    print(f"==============================================")
+    print(f"\n  {'═'*62}", flush=True)
+    print(f"  🏆  {exp_id} RESULTS  —  {model_name.upper()}", flush=True)
+    print(f"  {'═'*62}", flush=True)
+    print(f"      Accuracy   : {results['accuracy']*100:6.2f}%", flush=True)
+    print(f"      Macro F1   : {results['f1_score']*100:6.2f}%", flush=True)
+    print(f"      MCC        : {results.get('mcc', 0.0):6.4f}", flush=True)
+    print(f"      ROC-AUC    : {results.get('roc_auc', 0.0):6.4f}", flush=True)
+    print(f"      ECE Score  : {ece:6.4f}", flush=True)
+    print(f"      Brier Score: {brier:6.4f}", flush=True)
+    print(f"  {'═'*62}\n", flush=True)
     
     return results
 
