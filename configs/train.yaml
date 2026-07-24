@@ -1,0 +1,28 @@
+# TrustOCT Training Configuration
+
+epochs: 30
+seed: 42
+
+optimizer:
+  name: "adamw"
+  learning_rate: 0.0001
+  weight_decay: 0.0001
+
+scheduler:
+  name: "cosine"
+  eta_min: 0.000001
+  t_max: 30
+
+loss:
+  type: "edl"                # "ce", "edl", "coral", "edl_coral"
+  edl_annealing_epochs: 10   # KL divergence annealing schedule
+
+checkpoint:
+  save_dir: "outputs/checkpoints"
+  save_best_only: true
+  save_freq: 5
+
+early_stopping:
+  enabled: true
+  patience: 7
+  min_delta: 0.001

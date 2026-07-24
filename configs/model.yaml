@@ -1,0 +1,16 @@
+# TrustOCT Model Configuration
+
+backbone: "resnet50"
+pretrained: true
+
+feature_module: "multiscale"  # "multiscale" or "none"
+attention: "cbam"             # "cbam" or "none"
+
+domain_generalization: "mixstyle" # "mixstyle", "coral", or "none"
+mixstyle:
+  mix_prob: 0.5
+  alpha: 0.1
+
+head: "softmax"              # "softmax" or "edl" (Evidential Deep Learning)
+num_classes: 4
+dropout: 0.5

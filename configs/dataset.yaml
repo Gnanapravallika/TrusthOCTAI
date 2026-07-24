@@ -1,0 +1,28 @@
+# TrustOCT Dataset Configuration
+
+dataset:
+  name: "Kermany OCT2017"
+
+paths:
+  train: "datasets/Kermany/OCT2017/train"
+  val: "datasets/Kermany/OCT2017/val"
+  test: "datasets/Kermany/OCT2017/test"
+
+classes:
+  - "CNV"
+  - "DME"
+  - "DRUSEN"
+  - "NORMAL"
+
+image:
+  channels: "RGB"
+  extensions:
+    - ".jpeg"
+    - ".jpg"
+    - ".png"
+
+loader:
+  batch_size: 32
+  num_workers: 4
+  pin_memory: true
+  shuffle: true
