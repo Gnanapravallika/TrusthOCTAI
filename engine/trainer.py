@@ -75,7 +75,8 @@ class Trainer:
         else:
             self.criterion = nn.CrossEntropyLoss()
 
-        self.scaler = torch.cuda.amp.GradScaler() if self.device.type == "cuda" else None
+        self.scaler = torch.amp.GradScaler('cuda') if self.device.type == "cuda" else None
+
 
         log_cfg = self.train_cfg.get("logging", {})
         self.tb_writer = None
